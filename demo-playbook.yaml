@@ -6,4 +6,4 @@
   - name: list ansible_facts
     debug:
       var: ansible_facts
-  become: yes
+  #become: yes
