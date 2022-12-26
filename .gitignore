@@ -1,0 +1,10 @@
+/bin
+#/groups
+/hosts
+/include
+/lib
+/lib64
+/pyvenv.cfg
+#/requirements.txt
+#/roles
+#/vars
