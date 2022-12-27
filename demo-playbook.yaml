@@ -1,4 +1,4 @@
----
+#!/usr/bin/env ansible-playbook
 
 - name: Demo
   hosts: all
@@ -7,3 +7,5 @@
     debug:
       var: ansible_facts
   #become: yes
+...
+
