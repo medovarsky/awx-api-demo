@@ -1,2 +1,41 @@
 ---
 # tasks file for roles/minikube_as_root
+
+# prerequisite: access to APT software repository
+
+- name: install docker engine
+  ansible.builtin.apt:
+    name: ['docker.io', 'mailutils']
+    #update_cache: true
+    state: 'present'
+
+- name: create minikube group
+  ansible.builtin.group:
+    name: '{{ minikube_group }}'
+    state: 'present'
+
+- name: create regular user
+  ansible.builtin.user:
+    name: '{{ minikube_user }}'
+    shell: '/bin/bash'
+    group: '{{ minikube_group }}'
+    groups: 'docker'
+    append: true
+
+- debug: var=minikube_ssh_public_key
+
+- name: "copy user's ssh key"
+  lineinfile:
+    path: "/home/{{ minikube_user }}/.ssh/authorized_keys"
+    line: '{{ minikube_ssh_public_key }}'
+    insertafter: EOF
+    state: present
+    create: true
+
+- name: set up superpowers
+  ansible.builtin.template:
+    src: 'passwordless_sudo.j2'
+    dest: '/etc/sudoers.d/{{ minikube_user }}'
+    validate: /usr/sbin/visudo -cf %s
+
+# at this point, minikube could be installed as regular user

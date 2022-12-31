@@ -1,2 +1,33 @@
 ---
 # tasks file for roles/awx
+
+- include_tasks: awx-operator.yml
+- include_tasks: awx-demo.yml
+
+- name: set default context to awx
+  shell: "{{ kc }} config set-context --current --namespace=awx"
+  args:
+    executable: /bin/bash
+
+- name: find awx service url
+  shell: minikube service -n awx awx-demo-service --url
+  args:
+    executable: /bin/bash
+  register: awx_service_url
+
+- name: get admin password token
+  shell: "{{ kc }} get secret awx-demo-admin-password -o jsonpath=\"{.data.password}\" | base64 --decode; echo"
+  register: awx_admin_token
+
+#- debug: msg="{% set url = awx_service_url.stdout.replace('http://', '').split(':') %}host {{ url[0] }} port {{ url[1]|int }}"
+
+- name: watch for service to become available (patience)
+  ansible.builtin.wait_for:
+    host: "{% set url = awx_service_url.stdout.replace('http://', '').split(':') %}{{ url[0] | replace('http://', '') }}"
+    port: "{% set url = awx_service_url.stdout.replace('http://', '').split(':') %}{{ url[1]|int }}"
+    connect_timeout: 2
+    sleep: 2
+    state: started
+
+- debug:
+    msg: 'You can log into AWX instance at {{ awx_service_url.stdout}} as admin with password {{ awx_admin_token.stdout }}'

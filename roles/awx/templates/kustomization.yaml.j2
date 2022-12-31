@@ -1,0 +1,14 @@
+
+# {{ ansible_managed }}
+
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+# https://github.com/ansible/awx-operator/releases
+  - github.com/ansible/awx-operator/config/default?ref={{ awx_operator_tag }}
+# awx demo marker
+images:
+  - name: quay.io/ansible/awx-operator
+    newTag: {{ awx_operator_tag }}
+namespace: awx

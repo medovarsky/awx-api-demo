@@ -1,2 +1,6 @@
 
 minikube_user: 'kubes'
+minikube_group: 'kubes'
+#minikube_ssh_public_key: '' # define in cli using -e parameter
+#minikube_cpus: 3
+#minikube_ram: 3000m

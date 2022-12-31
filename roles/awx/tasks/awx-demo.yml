@@ -1,0 +1,48 @@
+---
+# *** add awx-demo ***
+
+- name: copy K8s nodeport template file for awx-operator
+  template:
+    src: awx-demo.yaml.j2
+    dest: awx-demo.yaml
+
+# add awx-demo.yml for kustomize to include into final yaml
+- name: add awx external connectivity
+  ansible.builtin.lineinfile:
+    path: kustomization.yaml
+    regexp: '^\ \ -\ awx-demo.yaml.*'
+    line: '  - awx-demo.yaml'
+    insertafter: '^#\ awx\ demo\ marker'
+
+# second configuration with awx-demo
+- name: process kustomize template with awx-demo
+  shell: "{{ ansible_env['HOME'] }}/bin/kustomize build . > awx-operator-demo-2.yaml"
+  args:
+    executable: /bin/bash
+
+# applying differences (awx-demo) to the current state  
+- name: apply and run awx-operator
+  shell: "{{ kc }} apply -f awx-operator-demo-2.yaml"
+  args:
+    executable: /bin/bash
+  register: awx_operator_demo
+
+#- debug: var=awx_operator_demo.stdout_lines
+
+# wait for awx-demo to become awailable
+
+- name: start async awx-operator readiness watcher
+  ansible.builtin.shell: "while ! {{ kc }} get pods -n awx | grep awx-demo- | grep -v 'awx-demo-postgres-' |grep -q Running; do sleep 2; done"
+  args:
+    executable: /bin/bash
+  async: 300
+  poll: 0
+  register: awx_operator_controller_manager
+
+- name: wait for async watcher to end
+  ansible.builtin.async_status:
+    jid: '{{ awx_operator_controller_manager.ansible_job_id }}'
+  register: job_result
+  until: job_result.finished
+  retries: 50
+  delay: 3

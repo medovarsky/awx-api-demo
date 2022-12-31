@@ -1,0 +1,40 @@
+---
+# *** awx operator ***
+
+- name: copy kustomization template file for awx-operator
+  template:
+    src: kustomization.yaml.j2
+    dest: kustomization.yaml
+
+# first kustomize configuration without awx-demo
+- name: process kustomize template
+  shell: "{{ ansible_env['HOME'] }}/bin/kustomize build . > awx-operator.yaml"
+  args:
+    executable: /bin/bash
+
+# applying awx-operator configuration
+- name: apply and run awx-operator
+  shell: "{{ kc }} apply -f awx-operator.yaml"
+  args:
+    executable: /bin/bash
+  register: awx_operator
+
+#- debug: var=awx_operator.stdout_lines
+
+# waiting for awx-operator-controller-manager instance to become ready
+
+- name: async awx-operator readiness watcher
+  ansible.builtin.shell: "while ! {{ kc }} get pods -n awx | grep awx-operator-controller-manager- |grep -q Running; do sleep 2; done"
+  args:
+    executable: /bin/bash
+  async: 300
+  poll: 0
+  register: awx_operator_controller_manager
+
+- name: wait for async watcher to end
+  ansible.builtin.async_status:
+    jid: '{{ awx_operator_controller_manager.ansible_job_id }}'
+  register: job_result
+  until: job_result.finished
+  retries: 50
+  delay: 3

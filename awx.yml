@@ -1,17 +1,20 @@
 
 - name: OS level tasks
   hosts: minikube
-  connection: local
   vars:
     ansible_user: 'root'
   roles:
   - { name: roles/minikube_as_root }
+  tags:
+  - root
+  pre_tasks:
+  - name: wait for host to become awailable
+    ansible.builtin.wait_for_connection:
 
 - name: Minikube
   hosts: minikube
-  connection: local
   vars:
     ansible_user: '{{ minikube_user }}'
   roles:
-  - { name: roles/minikube_as_user }
-  - { name: roles/awx }
+  - { name: roles/minikube_as_user, tags: ['user'] }
+  - { name: roles/awx, tags: ['app'] }

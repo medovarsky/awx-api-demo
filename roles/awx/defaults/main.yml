@@ -1,2 +1,3 @@
 ---
 # defaults file for roles/awx
+awx_operator_tag: '1.1.3'

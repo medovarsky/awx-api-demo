@@ -1,2 +1,4 @@
 ---
 # defaults file for roles/minikube_as_user
+minikube_cpus: 3
+minikube_ram: 2200m

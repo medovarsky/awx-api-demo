@@ -1,2 +1,5 @@
 ---
 # defaults file for roles/minikube_as_root
+minikube_group: 'kubes'
+minikube_user: 'kubes'
+minikube_ssh_public_key: '# minikube_ssh_public_key should be placed here but it is undefined. Default one has been used instead.'

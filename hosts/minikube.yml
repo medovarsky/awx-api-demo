@@ -1,2 +1,0 @@
-[minikube]
-localhost ansible_connection=local

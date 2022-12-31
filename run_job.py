@@ -14,8 +14,8 @@ from json import loads, dumps
 template_id = 10
 tls_verify = False
 host_url = 'http://192.168.49.2:30080/api/v2'
-ob_user = 'opsbridge_demo'
-ob_password = 'opsbridge_demo'
+awx_user = 'apidemo'
+awx_password = 'apidemo'
 
 def bstr_to_dict(bstr):
   s = bstr.decode('UTF-8', errors='strict')
@@ -27,11 +27,11 @@ def job_execute(template_id: str):
   return requests.post(
     url,
     verify=tls_verify,
-    auth=HTTPBasicAuth(ob_user, ob_password)
+    auth=HTTPBasicAuth(awx_user, awx_password)
   )
 
 if __name__ == '__main__':
-  if len(sys.argv) == 1:
+  if len(sys.argv) >= 2:
     job_id = str(int(sys.argv[1]))
   else:
     job_id = str(template_id)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     result = requests.get(
       f'{host_url}/jobs/{job_id}/',
       verify=tls_verify,
-      auth=HTTPBasicAuth(ob_user, ob_password)
+      auth=HTTPBasicAuth(awx_user, awx_password)
     )
     status = bstr_to_dict(result.content)
     #print(dumps(status))
@@ -55,7 +55,7 @@ if __name__ == '__main__':
       result = requests.get(
         f'{host_url}/jobs/{job_id}/',
         verify=tls_verify,
-        auth=HTTPBasicAuth(ob_user, ob_password)
+        auth=HTTPBasicAuth(awx_user, awx_password)
       )
       status = bstr_to_dict(result.content)
       #print(dumps(status))

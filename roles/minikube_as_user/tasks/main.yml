@@ -1,2 +1,72 @@
 ---
 # tasks file for roles/minikube_as_user
+
+- name: add bash aliases for kubectl
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env['HOME'] }}/.bash_aliases"
+    regexp: '^alias\ {{ item }}\=.*'
+    line: "alias {{ item }}='minikube kubectl --'"
+    create: yes
+    state: present
+  with_items:
+  - kubectl
+  - kc
+
+- name: install latest minikube package
+  ansible.builtin.apt:
+    deb: 'https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb'
+  become: yes
+
+- name: check minikube runtime status
+  ansible.builtin.shell: minikube status
+  register: minikube_status
+  failed_when: minikube_status.rc not in [0, 85]
+  changed_when: false
+
+- name: Set host facts
+  ansible.builtin.set_fact:
+    minikube_stopped: "{{ minikube_status.rc != 0 }}"
+
+- name: start minikube (takes a while)
+  ansible.builtin.shell: minikube start --cpus={{ minikube_cpus }} --memory={{ minikube_ram }} --addons=ingress
+  when: minikube_stopped
+
+- name: capture all minikube resources
+  ansible.builtin.shell: minikube kubectl -- get all --all-namespaces
+  #ansible.builtin.shell: source .bash_aliases; kc get all --all-namespaces
+  #args:
+  #  executable: /bin/bash
+  register: minikube_resources
+
+- name: print minikube resources
+  debug:
+    var=minikube_resources.stdout_lines
+
+- name: create ~/bin directory
+  ansible.builtin.file:
+    dest: "{{ ansible_env['HOME'] }}/bin"
+    state: directory
+    mode: 0754
+
+- name: check for kustomize binary
+  ansible.builtin.stat:
+    path: "{{ ansible_env['HOME'] }}/bin/kustomize"
+  register: kustomize_bin
+
+- debug: var=kustomize_bin
+
+- name: download kustomize
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+    dest: "{{ ansible_env['HOME'] }}/install_kustomize.sh"
+  when: not kustomize_bin.stat.exists
+
+- name: install kustomize
+  ansible.builtin.shell: "{{ ansible_env['SHELL'] }} {{ ansible_env['HOME'] }}/install_kustomize.sh '{{ ansible_env['HOME'] }}/bin'"
+  register: kustomize_status
+  when: "not kustomize_bin.stat.exists"
+
+- name: set kustomize fact
+  ansible.builtin.set_fact:
+    kustomize_installed: "{{ kustomize_bin.stat.exists or (kustomize_status is defined and 'kustomize installed to' in kustomize_status.stdout) }}"
+  
