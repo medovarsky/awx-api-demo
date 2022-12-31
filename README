@@ -11,6 +11,8 @@ AWX playbook itself is idempotent, and running it multiple times has no unintend
 The demo consists of the following logical parts:
 1. Ansible playbook which installs Kubernetes and AWX,
 2. Configuring AWX in UI for parts which have not been automated for purposes of this demo. The configuration could be automated using AWX API calls.
+3. Running API calls through included Python demo application.
+
 
 IaaS demo code
 
@@ -65,7 +67,9 @@ The configuration data is persistent through subsequent minikube restarts.
 
 At this point, AWX is ready for manual configuration part.
 
+
 Manual configuration
+
 For external users to be able to execute playbooks, the following resources within AWX need to be defined:
     1. Organization where the resources will be locked into.
     2. Credential for Git repository,
@@ -75,8 +79,6 @@ For external users to be able to execute playbooks, the following resources with
     6. Host inventory,
     7. Demo Project,
     8. Demo Template.
-
-
 
 Access/Organization, Add
 Name: ExampleCompany
@@ -137,3 +139,39 @@ Credentials: „SSH:Demo Machine Credentials“
 tab: Access
 DemoUser = Execute
 
+
+API Demo
+
+To make the demo user friendly, a demo application run_job.py was written in Python. It is up to the user to choose where to run it from – whether from Kubernetes host where AWX is running, or by opening a forwarding connection from demo host‘s public-facing IP address.
+For cloning demo repository, please refer to Chapter 1.
+
+Before running API demo, server URL and user credentials should be checked:
+$ vi run_job.py
+
+Items of interest:
+template_id = 10 # from URL of Resources/Templates/Demo Template in UI
+tls_verify = False # for HTTPS connections
+host_url = 'http://192.168.49.2:30080/api/v2' # must include /api/v2 path
+awx_user = 'apidemo'
+awx_password = 'apidemo'
+
+After the settings are checked and correct, the demo can be executed with optional template id:
+$ python3 run_job.py [template_id]
+
+At the end of a CLI session within virtual environment, enter:
+$ deactivate
+
+
+Final remarks
+If you have no kc alias, execute:
+alias kc=‘minikube kubectl --‘
+or add it to your ~/.bash_aliases to load at your next login. The playbook does this for its kubes user.
+
+Useful commands for Kubernetes environment:
+kc logs -f deployments/awx-operator-controller-manager -c awx-manager
+
+kc get pods -o json |grep name |grep task
+
+kc get pods -n awx #list pods in awx namespace
+
+kc exec -i -t pod/awx-demo-${container_id} --container awx-demo-task – bash
