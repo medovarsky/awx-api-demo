@@ -28,7 +28,7 @@ AWX playbook is conveniently stored in this Git repository. It is advised to clo
     git clone https://github.com/medovarsky/awx-api-demo.git
     cd  awx-api-demo
 
-While IaaS has all the code needed for AWX to be built, it needs configuration defaults to be altered to suit our needs. The following files need to be revised:
+While the repository has all the code needed for AWX to be built, it needs configuration defaults to be altered to suit our needs. The following files need to be revised:
 * `hosts/minikube.yml` – contains connection to host to become Kubernetes platform for AWX instance. You can also predefine host name and connection details in your ~/.ssh/config.
 * `group_vars/minikube.yml` – contains non-privileged user and group (defaults to kubes:kubes), as well as Kubernetes CPU (3) and RAM (2200m) settings. You can also define your public key for non-privileged user at destination host. For this demo, the public key will be defined at command line.
 * `ansible.cfg`, in case any special configuration is needed for whole Demo project, like turning cowsay on.
