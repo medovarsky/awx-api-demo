@@ -94,7 +94,7 @@ For external users to be able to execute playbooks, the following resources with
 ### The following changes are needed in UI:
 
     Access/Organization, Add:
-    Name: ExampleCompany
+    Name: DemoCompany
     Execution Environment: AWX EE (latest)
     Save
 
@@ -111,8 +111,9 @@ For external users to be able to execute playbooks, the following resources with
     Organization: DemoCompany
     Save
     tab: Teams
-    Select DemoTeam
     Associate
+    Select DemoTeam
+    Save
 
     Resources/Credentials, Add
     Name: Demo repository
@@ -126,32 +127,47 @@ For external users to be able to execute playbooks, the following resources with
     Resources/Credentials, Add
     Name: Demo machine credentials
     Organization: DemoCompany
-    Username: <ansible service user name>
     Credential Type: Machine
+    Username: <ansible service user name>
+    SSH Private Key: <paste host key>
     Private Key Passphrase: enter if needed
     Privilege Escalation Password: enter if needed
     Save
 
     Resources/Projects, Add
-    Name: Demo project
+    Name: API Demo project
     Organization: DemoCompany
     Source control type: Git
-    Source Control URL: https://github.com/medovarsky/awx-smax-demo.git
+    Source Control URL: https://github.com/medovarsky/awx-api-demo.git
     Source Control Branch/Tag/Commit: master
     Source Control Credential: Demo repository (not needed for public r/o access)
     Options: Delete
     Save
     tab: Access – verify that API user has „Use“ access
 
-    Resources/Templates, Add/Add job template
-    Name: Demo Templates
-    Job Type: Run
-    Inventory: Demo
-    Project: Demo Projects
-    Credentials: „SSH:Demo Machine Credentials“
-    tab: Access
-    DemoUser = Execute
+    Resources/Inventories, Add
+    Name: API Demo Inventory
+    Company: select DemoCompany, Save
     Save
+    go to Groups tab, enter "minikube", Save
+    go to Hosts tab, enter your hostname, Save
+    (for simplicity's sake, you can set "ansible_hostname: 127.0.0.1" into Variables)
+    go to Groups tab within that host, Add "minikube" group, Save
+
+    Resources/Templates, Add/Add job template
+    Name: API Demo Template
+    Job Type: Run
+    Inventory: API Demo Inventory
+    Project: API Demo Project
+    Playbook: demo-playbook.yaml
+    Credentials: „SSH:Demo Machine Credentials“
+    Save
+    tab: Access
+    Add, click on Users button, Next, select DemoUser, Next, select Execute, Save
+    Save
+
+    Views/Jobs
+    watch Output
 
 # API Demo
 

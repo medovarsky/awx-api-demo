@@ -20,7 +20,7 @@
 - name: check minikube runtime status
   ansible.builtin.shell: minikube status
   register: minikube_status
-  failed_when: minikube_status.rc not in [0, 85]
+  failed_when: minikube_status.rc not in [0, 7, 85]
   changed_when: false
 
 - name: Set host facts
